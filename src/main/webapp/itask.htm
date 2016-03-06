@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+<title>TsScheduler</title>
+
+<!-- Bootstrap -->
+<link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+      <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+	<h1 class="text-center">iTask</h1>
+	<div style="border-color: #ddd; border-width: 1px; border-style: solid; border-radius: 4px 4px 0 0; text-align: center">
+		<div style="margin: 0px 10px 0 10px;">
+			<table style="width: 100%" width="90%">
+				<tbody></tbody>
+				<tr>
+					<td style="width: 90%">
+						<table id='tblReport' class="table table-bordered table-hover table-striped">
+							<thead>
+								<tr>
+									<th id="trSeq" json-id="seq">#</th>
+									<th id="trTitle" json-id="title">标题</th>
+									<th id="trDescription" json-id="description" style="width: 20%">描述</th>
+									<th id="trTimeScope" json-id="duration">工期</th>
+									<th id="trStartDate" json-id="startDate">开始日期</th>
+									<th id="trEndDate" json-id="endDate">结束日期</th>
+									<th id="trOwner" json-id="owner">负责人</th>
+								</tr>
+							</thead>
+							<tbody>
+								
+							</tbody>
+						</table>
+				</td>
+				<td style="width: 10%; text-align: left; margin: 5px 5px 5px 5px;"><input class="btn btn-default " style=""
+					type="button" value="添加" data-toggle="modal" data-target="#mdlAdd" /><br> <input class="btn btn-default"
+					style="" type="button" value="删除" /></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="text-center">
+			<input type="button" class="btn btn-primary" value="提交" onclick="submitData()">
+		</div>
+
+	</div>
+
+	<!-- 添加窗口 -->
+	<div id="mdlAdd" class="modal fade">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title">添加任务</h4>
+				</div>
+				<div class="modal-body">
+					<form class="form" >
+						<div class="form-group">
+							<label class="control-label" for="addMdlTitle">标题</label><input type="text" id="addMdlTitle" class="form-control" placeholder="标题" />
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="addMdlTimeScope">工期</label> <input type="number" id="addMdlTimeScope" class="form-control"
+								placeholder="2" />
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="addMdlStartDate">开始时间</label> <input type="date" id="addMdlStartDate" class="form-control" />
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="addMdlEndDate">完成时间</label> <input type="date" id="addMdlEndDate" class="form-control" />
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="addMdlOwner">负责人</label> <select id="addMdlOwner" class="form-control">
+								<option value="Jacky,Huang">Jacky,Huang</option>
+								<option value="Mike,Yang">Mike,Yang</option>
+								<option value="Tom,Li">Tom,Li</option>
+								<option value="Siva,Yu">Siva,Yu</option>
+								<option value="Kate,Wang">Kate,Wang</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="addMdlDescription" class="control-label" >描述</label>
+							<textarea id="addMdlDescription" class="form-control" placeholder="描述" rows="3"></textarea>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" onclick="addMdlSave()">保存</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+			<!-- /.modal-content -->
+		</div>
+		<!-- /.modal-dialog -->
+	</div>
+	<!-- /.modal -->
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="bootstrap/js/jquery-1.11.3.min.js"></script>
+	<!-- Include all compiled plugins (below), or include individual files as needed -->
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<script type="text/javascript">
+		/**
+		 * Business module
+		 */
+		function init() {
+			loadData();
+		}
+		function loadData() {
+			getTasks();
+		}
+		function submitData(){
+			submitTasks();
+		}
+		//---------------Service: GetTasks Start----------------------
+		function getTasks(){
+			$.get("http://localhost:8085/task/service/task",null,getTasksSuccess,"json")
+		}
+		function getTasksSuccess(data){
+			if(!data) {alert("no data");return;}
+			//if(JSON.stringify)alert(JSON.stringify(data));
+			var records = [];
+			for(var i=0; i <data.length;i++){
+				var rec = {
+						"trSeq" : data[i].seq,
+						"trTitle" : data[i].title,
+						"trDescription" : data[i].description,
+						"trTimeScope" : data[i].duration,
+						"trStartDate" : data[i].startDate,
+						"trEndDate" : data[i].endDate,
+						"trOwner" : data[i].owner
+					}
+				records.push(rec);
+				insertRecords("tblReport", records);
+			}
+		}
+		//---------------Service: GetTasks End----------------------
+		//---------------Service: SubmitTasks Start----------------------
+		function submitTasks(){
+			var data = loadRecords("tblReport");
+			//if(JSON.stringify)alert(JSON.stringify(data));
+			//$.post("http://localhost:8085/task/service/task",data,alert("success"),"json")
+			$.ajax({
+				type:"POST",
+				url:"http://localhost:8085/task/service/task",
+				contentType:"application/json",
+				dataType:"json",
+				data:JSON.stringify(data[0]), 
+				 success:submitTasksSuccess
+			});
+		}
+		function submitTasksSuccess(data){
+			alert("success for upload Tasks");
+		}
+		//---------------Service: GetTasks End----------------------
+
+		function addMdlSave() {
+			var fieldsMapping = [ [ "trTitle", "addMdlTitle" ],
+					[ "trDescription", "addMdlDescription" ],
+					[ "trTimeScope", "addMdlTimeScope" ],
+					[ "trStartDate", "addMdlStartDate" ],
+					[ "trEndDate", "addMdlEndDate" ],
+					[ "trOwner", "addMdlOwner" ] ];
+			var data = formBuilder.filedsToJson(fieldsMapping, "mdlAdd");
+			data["trSeq"] = $("#tblReport")[0].rows.length;
+			insertRecord('tblReport', data);
+		}
+		/**
+		 * Util functions
+		 */
+
+		/**
+		 * String Util
+		 */
+		StringBuffer = function() {
+			this.buffer = [];
+			for (var i = 0; i < arguments.length; i++) {
+				this.buffer.push(arguments[i]);
+			}
+			this.append = function() {
+				for (var i = 0; i < arguments.length; i++) {
+					this.buffer.push(arguments[i]);
+				}
+				return this;
+			}
+			this.toString = function() {
+				return this.buffer.join('');
+			}
+		}
+
+		/**
+		 * Table operation
+		 */
+		function insertRecord(tId, record) {
+			var records = [];
+			records.push(record);
+			insertRecords(tId,records);
+		}
+		function insertRecords(tId,datas){
+			var myTable = $("#"+tId)[0];
+		 	var cells = myTable.rows[0].cells;
+			for(var j = 0; j < datas.length; j++){  
+				var rowj= myTable.insertRow(myTable.rows.length);  	
+				for(var i = 0; i < cells.length; i++){  		
+					cellI = rowj.insertCell(i);
+					cellI.innerHTML=datas[j][cells[i].id]?datas[j][cells[i].id]:"&nbsp;";
+				} 
+			} 
+		}
+		function loadRecords(tId){
+			var myTable = $("#"+tId)[0];
+		 	var hcells = myTable.rows[0].cells;
+		 	var records = [];
+		 	for(var i = 1; i < myTable.rows.length; i++){
+		 		var dataCells = myTable.rows[i].cells;
+		 		var record = {};		 		
+		 		for(var j = 0; j < hcells.length; j++){
+		 			record[hcells[j].getAttribute("json-id")]=dataCells[j].innerText;
+		 		}
+		 		records.push(record);
+		 	}
+		 	return records;
+		}
+		var formBuilder = {};
+		//isTranslation 1: enable CVT & Date translation, 0: disable CVT translation 
+		formBuilder.jsonToFileds = function(mapping, json, isTranslation, parentBlk){		
+			//mapping[i][0:schema field, 1:screen field, 2:CVT, 3:date translation (1:date trans), 4: mapping ignore]
+			if(mapping != null && json != null){
+				if(isTranslation == 1){
+					for(var i = 0; i < mapping.length; i++){
+						if(mapping[i][4] == 1){
+							//formBuilder field mapping is ignored
+							continue;
+						}
+						if(mapping[i][2] != undefined){
+							formBuilder.setValueWithCVT(mapping[i][1], json[mapping[i][0]],mapping[i][2], parentBlk);
+						} else if(mapping[i][3] != undefined){
+							formBuilder.setValueWithDateTrans(mapping[i][1], json[mapping[i][0]], parentBlk);
+						} else {
+							formBuilder.setValue(mapping[i][1], json[mapping[i][0]], parentBlk);
+						}					
+					}
+				}else{
+					for(var i = 0; i < mapping.length; i++){
+						if(mapping[i][4] == 1){
+							//formBuilder field mapping is ignored
+							continue;
+						}
+						if(mapping[i][3] != undefined){
+							formBuilder.setValueWithDateTrans(mapping[i][1], json[mapping[i][0]], parentBlk);
+						} else {
+							formBuilder.setValue(mapping[i][1], json[mapping[i][0]], parentBlk);
+						}					
+					}
+				}			
+			}else if(mapping != null && (json == undefined || json == null)){
+				//Clear all the data to blank if json is undefined or null
+				for(var i = 0; i < mapping.length; i++){
+					if(mapping[i][4] == 1){
+							//formBuilder field mapping is ignored
+							continue;
+					}		
+					formBuilder.setValue(mapping[i][1], parentBlk);
+				}
+			}else{
+				alert("Mapping or json should not be null");
+			}
+		};
+
+		formBuilder.filedsToJson = function(mapping, parentBlk){
+			var jsonObj = {};
+			if(mapping != null){
+				for(var i = 0; i < mapping.length; i++){
+					jsonObj[mapping[i][0]] = formBuilder.getValue(mapping[i][1], parentBlk);
+				}
+			}
+			return jsonObj;
+		};
+
+		formBuilder.setValue = function(id, value, parentBlk){
+			var component = document.getElementById(id);
+			if(component == null){
+				alert(id + " does not exists");
+				return;
+			}
+			value = (value == undefined)?"":trim(value);
+			if(component.type == "text"){
+				component.value = value;
+			} else if(component.type == "checkbox"){
+				component.checked =(value == "Y")? true:false;
+			} else if(component.type == "select-one") {
+				formBuilder.setSelectValueByObj(component,value);
+			}else if(component.value != undefined){			
+				component.value = value;
+			}else{
+				component.innerText = value;
+			}
+		};
+
+
+		formBuilder.setValueWithCVT = function(id, value, cvt, parentBlk){
+			//CVT only for textField, label,span...
+			var component = document.getElementById(id);
+			if(component == null){
+				alert(id + " does not exists");
+				return;
+			}
+			value = (value == undefined)?"":trim(value);
+			value = (cvt == undefined || eval(cvt) == undefined)? value:getCVTShortDesc(value, eval(cvt));
+			if(component.type == "text"){
+				component.value = value;
+			} else if(component.type == "checkbox"){
+				//component.checked =(value == "Y")? true:false;
+			} else if(component.type == "select-one") {
+				//component.value = value;
+			}else if(component.value != undefined){	
+				component.value = value;
+			}else{
+				component.innerText = value;
+			}
+		};
+
+		formBuilder.setValueWithDateTrans = function(id, value, parentBlk){
+			//CVT only for textField, label,span...
+			var component = document.getElementById(id);
+			if(component == null){
+				alert(id + " does not exists");
+				return;
+			}
+			value = (value == undefined)?"":formateDateFromDBToPage(value);
+			if(component.type == "text"){
+				component.value = value;
+			} else if(component.type == "checkbox"){
+				//component.checked =(value == "Y")? true:false;
+			} else if(component.type == "select-one") {
+				//component.value = value;
+			}else if(component.value != undefined){	
+				component.value = value;
+			}else{
+				component.innerText = value;
+			}
+		};
+
+		formBuilder.getValue = function(id, parentBlk){
+			var component = document.getElementById(id);
+			if(component == null){
+				alert(id + " does not exists");
+				return;
+			}
+			var value = "";
+			if(component.type == "text"){			
+				value = component.value;
+				if(id.indexOf("dpk") != -1){
+					//formBuilder is datePicker need to tranlate the date to DB format
+					value = formateDateFromPageToDB(value);
+				}else if(id.indexOf("cur") != -1){
+					value=getAmountValue(value);
+				}
+			} else if(component.type == "checkbox"){			
+				value = (component.checked == true)? "Y":"N";
+			}else if(component.value != undefined){
+				value = component.value;
+			}else{
+				value = component.innerText;
+			}
+			return value;
+		};
+
+		formBuilder.setSelectValueByObj = function(obj, value){
+			valueUpper = value.toUpperCase();
+			obj.value = valueUpper;
+			if(value!='' && obj.value != valueUpper){		
+				option = new Option(valueUpper,valueUpper);
+				obj.options.add(option);
+				obj.value = valueUpper;
+			}
+		};
+		/**
+		 * Init
+		 */
+		init();
+	</script>
+</body>
+</html>
